@@ -1,33 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Try-On</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Try-On</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/three@0.135.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.135.0/examples/js/loaders/FBXLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.135.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+   
+  </style>
 </head>
 <body>
-
-<!-- Camera Container and Buttons for AR -->
-<div id="container">
-    <!-- Camera Feed Canvas -->
-    <canvas id="cameraCanvas"></canvas>
-
-    <!-- Buttons -->
-    <div class="buttons">
-        <button id="backButton">Back to Store</button>
-        <button id="recordButton">Record</button>
-        <button id="addToCartButton">Add to Cart</button>
-        <button id="saveForLaterButton">Save for Later</button>
+  <header class="ar-header">
+    <button id="closeButton" class="icon-button" onclick="window.location.href = 'store.html';">✖</button>
+    <h1>Instructions</h1>
+    <div class="header-icons">
+      <button id="infoButton" class="icon-button">ℹ️</button>
+      <button id="settingsButton" class="icon-button">⚙️</button>
     </div>
-</div>
+  </header>
 
-<!-- Toast Notifications -->
-<div id="toastContainer"></div>
+  <main class="ar-container">
+    <p class="instructions">
+      Stand in front of the camera so your entire body, including your head, arms, and feet, is fully visible within the frame.
+    </p>
+    <div class="camera-container" id="cameraContainer">
+      <video id="camera" autoplay playsinline></video>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.144.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic"></script>
-<script src="js/ar.js"></script>
+    <div class="buttons-container">
+      <button id="addToCartBtn">Add to Cart</button>
+      <button id="saveForLaterBtn">Save for Later</button>
+      <button id="recordBtn">Record</button>
+      <button id="snapshotBtn">Take Snapshot</button>
+    </div>
 
+    <img id="snapshotImage" src="" alt="Snapshot">
+  </main>
+
+  <footer class="ar-footer">
+    <p class="branding">Virtu Wear</p>
+  </footer>
+
+  <script>
+    // Scene Setup using (Three.js)
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('cameraContainer').appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    const light = new THREE.AmbientLight(0xffffff, 1); // General lighting
+    scene.add(light);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5); // Directional light
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const productType = urlParams.get('product');
+    const loader = new THREE.FBXLoader();
+    let model;
+
+    if (productType === 'ring') 
+    {
+      loader.load('assets/models/ring_model.fbx', (fbx) => 
+      {
+        model = fbx;
+        model.scale.set(0.02, 0.02, 0.02);
+        scene.add(model);
+      });
+    } else if (productType === 'skirt') 
+    {
+      loader.load('assets/models/skirt_model.fbx', (fbx) => 
+      {
+        model = fbx;
+        model.scale.set(0.5, 0.5, 0.5);
+        scene.add(model);
+      });
+    }
+
+    camera.position.z = 5;
+
+    function animate() 
+    {
+      requestAnimationFrame(animate);
+      if (model) 
+      {
+        model.rotation.y += 0.01;
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    async function setupCamera() 
+    {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const video = document.getElementById('camera');
+      video.srcObject = stream;
+      video.play();
+    }
+
+    setupCamera();
+
+    // Button functionality
+    document.getElementById('addToCartBtn').addEventListener('click', () => 
+    {
+      alert('Added to cart');
+    });
+
+    document.getElementById('saveForLaterBtn').addEventListener('click', () => 
+    {
+      alert('Saved for later');
+    });
+
+    document.getElementById('recordBtn').addEventListener('click', () => 
+    {
+      // Logic to record video (could involve using MediaRecorder API)
+      alert('Recording...');
+    });
+
+    // Takes Snapshot
+    document.getElementById('snapshotBtn').addEventListener('click', () => 
+    {
+      const video = document.getElementById('camera');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/png');
+      const snapshotImage = document.getElementById('snapshotImage');
+      snapshotImage.src = dataUrl;
+      snapshotImage.style.display = 'block';
+    });
+  </script>
 </body>
 </html>

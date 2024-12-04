@@ -1,5 +1,5 @@
 // DOM Elements
-const video = document.createElement('video'); // Use video element for camera feed
+const video = document.createElement('video'); 
 const canvas = document.getElementById('cameraCanvas');
 const backButton = document.getElementById('backButton');
 const recordButton = document.getElementById('recordButton');
@@ -61,7 +61,7 @@ async function setupCamera() {
     video.play();
     video.width = window.innerWidth;
     video.height = window.innerHeight;
-    document.body.appendChild(video); // Attach the video element to body for debugging purposes
+    document.body.appendChild(video); 
   } catch (error) {
     alert('Camera permission denied or unavailable.');
   }
